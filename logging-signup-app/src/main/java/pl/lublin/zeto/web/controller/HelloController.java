@@ -18,9 +18,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import pl.lublin.zeto.mapping.*;
-import pl.lublin.zeto.util.Util;
+import pl.lublin.zeto.util.*;
 
 /**
+ * This is the controller of the application in the sense of
+ * the Model–view–controller (MVC) software architectural pattern. 
+ * <p>
  * 
  * @author Michal Rakowski
  *
@@ -28,9 +31,21 @@ import pl.lublin.zeto.util.Util;
 @Controller
 public class HelloController
 {
+	/**
+	 * This is the logger for the application. The log is stored in /logs/log4j-log.log
+	 */
 	final static Logger logger = Logger.getLogger(HelloController.class);
 
-	
+	/** 
+	 * RequestMapping method for "/".
+	 * <p>
+	 * Checks whether the user is already signed in,
+	 * by checking whether the cookie set by another method exists.
+	 * 
+	 * @param usernameCookie 
+	 * @param passwordHashCookie
+	 * @return returns model with attributes from the cookie it got as an argument
+	 */
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public ModelAndView showForm(
 			@CookieValue(value = "username", defaultValue = "defaultCookieValue") String usernameCookie,
@@ -46,6 +61,14 @@ public class HelloController
 		return model;
 	}
 	
+	/**
+	 * RequestMapping method for "/logout".
+	 * <p>
+	 * Logs the user out by deleting the cookie.
+	 * 
+	 * @param response
+	 * @return
+	 */
 	@RequestMapping(value = "/logout", method = RequestMethod.GET)
 	public String deleteCookie(HttpServletResponse response)
 	{
@@ -54,7 +77,17 @@ public class HelloController
 		
 		return "hello";
 	}
-	 
+	
+	/**
+	 * RequestMapping method for "/addUser".
+	 * <p>
+	 * Adds a new user to database.
+	 * 
+	 * @param user
+	 * @param result
+	 * @param model
+	 * @return
+	 */
 	@RequestMapping(value = "/addUser", method = RequestMethod.POST)
 	public String submit(@Validated @ModelAttribute("user") User user, BindingResult result, ModelMap model)
 	{
@@ -65,7 +98,7 @@ public class HelloController
 		
 		try
 		{
-			user.setSalt(Util.generateSalt().toString());
+			user.setSalt(Security.generateSalt().toString());
 		}
 		catch (NoSuchAlgorithmException e)
 		{
@@ -73,7 +106,7 @@ public class HelloController
 			e.printStackTrace();
 		}
 		user.setRole("user");
-		user.setPasswordHash(Util.hashingFunction(user.getPasswordHash()));
+		user.setPasswordHash(Security.hashingFunction(user.getPasswordHash()));
 		
 		logger.debug("---this is about to go to the database:");
 		logger.debug(user.getId());
@@ -83,7 +116,7 @@ public class HelloController
 		logger.debug(user.getSalt());
 		logger.debug("---");
 		
-		Util.insert_data_into_table_Users(user); 
+		DAO.insertDataIntoTableUsers(user); 
 		
 		model.addAttribute("name", user.getName());
 		model.addAttribute("email", user.getEmail());
@@ -92,15 +125,22 @@ public class HelloController
 	}
 	
 	
-	
+	/**	 
+	 * RequestMapping method for "/login".
+	 * <p>
+	 * Logs the user in.
+	 * 
+	 * @param user
+	 * @param result
+	 * @param model
+	 * @param response
+	 * @return
+	 */
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public String signIn(@Validated @ModelAttribute("user") User user, BindingResult result, ModelMap model, HttpServletResponse response)
 	{
 		if (result.hasErrors())	return "error";
-		
-		
-		
-		
+				
 		//find the user in Users
 		//if found:
 		//	if it's role is "admin", open /adminView
@@ -108,8 +148,8 @@ public class HelloController
 		//else:
 		//redirect back to / with message "login and password don't match"
 		
-		user.setPasswordHash(Util.hashingFunction(user.getPasswordHash()));
-		User userFound = Util.findUserFromDB(user);
+		user.setPasswordHash(Security.hashingFunction(user.getPasswordHash()));
+		User userFound = DAO.findUserFromDB(user);
 		
 		if(userFound != null)
 		{
@@ -126,7 +166,7 @@ public class HelloController
 				
 				
 				
-				List<LogAndUser> list = Util.listLogsFromDB();
+				List<LogAndUser> list = DAO.listLogsFromDB();
 				logger.debug("list  =  ");
 				for(LogAndUser logAndUser : list)
 		        {
