@@ -1,5 +1,9 @@
 package pl.lublin.zeto.mapping;
-
+/**
+ * 
+ * @author Michal Rakowski
+ *
+ */
 public class Log
 {
 	protected long id;
@@ -7,6 +11,12 @@ public class Log
 	protected long userId;
 	
 	public Log() { }
+	
+	/**
+	 * Constructs a Log saying who successfully signed in and when
+	 * @param timestamp at what time did the person successfully sign in
+	 * @param userId userId of the person who successfully signed in
+	 */
 	public Log(String timestamp, long userId)
 	{
 	
