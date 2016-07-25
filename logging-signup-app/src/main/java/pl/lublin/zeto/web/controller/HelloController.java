@@ -20,6 +20,11 @@ import org.springframework.web.servlet.ModelAndView;
 import pl.lublin.zeto.mapping.*;
 import pl.lublin.zeto.util.Util;
 
+/**
+ * 
+ * @author Michal Rakowski
+ *
+ */
 @Controller
 public class HelloController
 {
